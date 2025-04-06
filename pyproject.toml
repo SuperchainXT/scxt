@@ -1,0 +1,41 @@
+[project]
+name = "scxt"
+dynamic = ["version", "readme"]
+description = "Superchain exchange trading library"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.10.6", "web3>=7.9.0"]
+
+[tool.setuptools]
+packages = { find = {} }
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "scxt.__version__.__version__" }
+readme = { file = ["README.md"], content-type = "text/markdown" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+    "integration: marks tests that require external services",
+    "slow: marks tests that are slow to execute",
+]
+
+[tool.coverage.run]
+source = ["scxt"]
+omit = ["tests/*", "**/__init__.py"]
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.6.11",
+    "mkdocstrings-python>=1.16.10",
+    "pytest>=8.3.5",
+    "pytest-cov>=4.1.0",
+    "python-dotenv>=1.1.0",
+    "ruff>=0.11.4",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
