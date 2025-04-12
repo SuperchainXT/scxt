@@ -1,4 +1,4 @@
-# SCXT
+# Welcome to scxt!
 
 `scxt` is a Python library designed to make it easier to interact with cryptocurrency exchanges, with a special focus on decentralized exchanges (DEX) that require direct blockchain interactions.
 

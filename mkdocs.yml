@@ -1,20 +1,22 @@
 site_name: SCXT
 site_description: A library for trading on exchanges across the Superchain
 
+repo_name: SuperchainXT/scxt
+repo_url: https://github.com/SuperchainXT/scxt
+
 theme:
   name: material
   locale: en
+  favicon: assets/favicon.png
+  logo: assets/logo.png
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+      primary: black
+      accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
   features:
     - navigation.instant
     - navigation.tracking
@@ -25,6 +27,9 @@ theme:
     - navigation.indexes
     - content.tabs.link
     - content.code.copy
+
+extra_css:
+  - css/extra.css
 
 markdown_extensions:
   - pymdownx.highlight
@@ -47,5 +52,13 @@ plugins:
             show_submodules: true
 
 nav:
-  - Home: index.md
+  - Get Started:
+      - Home: index.md
+      - Quickstart: guides/quickstart.md
+      - Exchanges: guides/exchanges.md
+      - Transactions: guides/transactions.md
+      - Best Practices: guides/best_practices.md
+  - Exchanges:
+      - SynthetixV2: exchanges/synthetix_v2.md
+      - Odos: exchanges/odos.md
   - API Reference: reference.md
