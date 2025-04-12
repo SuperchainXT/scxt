@@ -144,8 +144,6 @@ class ChainClient:
             self.address = self.provider.to_checksum_address(self.config.address)
             self.logger.info(f"Account address set up: {self.address}")
 
-    # TODO: get the nonce for an account
-
     def load_abi(self, name: str) -> List:
         """Load an ABI from the contract directory or return from cache."""
         # Return cached ABI if available

@@ -23,12 +23,10 @@ class HTTPClient:
     """
 
     def __init__(self, config: Union[Dict[str, Any], HTTPConfig]):
-        super().__init__(config)
         self.config = HTTPConfig.model_validate(config)
         self.base_url = self.config.base_url
         self.timeout = self.config.timeout
         self.session = self._setup_session()
-        self.rate_limit_headers = self.config.rate_limit_headers
 
     def _setup_session(self):
         """Sets up an HTTP session.
