@@ -123,13 +123,40 @@ class BaseExchange(ABC):
         pass
 
     @abstractmethod
-    def deposit(self) -> None:
-        """Deposit funds into the exchange account"""
+    def deposit(
+        self,
+        amount: float,
+        currency: str,
+        send: bool = False,
+        params: Dict[str, Any] = {},
+    ) -> None:
+        """
+        Deposit funds into the exchange account
+        Args:
+            amount: Amount to deposit
+            currency: Currency code (e.g., 'BTC', 'ETH')
+            send: Whether to send the transaction immediately
+            params: Additional parameters for the deposit
+        """
         pass
 
     @abstractmethod
-    def withdraw(self) -> None:
-        """Withdraw funds from the exchange account"""
+    def withdraw(
+        self,
+        amount: float,
+        currency: str,
+        send: bool = False,
+        params: Dict[str, Any] = {},
+    ) -> None:
+        """
+        Withdraw funds from the exchange account
+
+        Args:
+            amount: Amount to withdraw
+            currency: Currency code (e.g., 'BTC', 'ETH')
+            send: Whether to send the transaction immediately
+            params: Additional parameters for the withdrawal
+        """
         pass
 
     @abstractmethod
@@ -140,7 +167,8 @@ class BaseExchange(ABC):
         side: str,
         amount: float,
         price: Optional[float] = None,
-        params: Optional[Dict[str, Any]] = None,
+        send: bool = False,
+        params: Dict[str, Any] = {},
     ) -> Order:
         """
         Create a new order
@@ -151,6 +179,7 @@ class BaseExchange(ABC):
             side: Order side ('buy' or 'sell')
             amount: Order amount in base currency
             price: Order price (required for limit orders)
+            send: Whether to send the order immediately
             params: Additional exchange-specific parameters
         """
         pass
@@ -160,7 +189,8 @@ class BaseExchange(ABC):
         self,
         id: str,
         symbol: Optional[str] = None,
-        params: Optional[Dict[str, Any]] = None,
+        send: bool = False,
+        params: Dict[str, Any] = {},
     ) -> Order:
         """
         Cancel an existing order
@@ -168,34 +198,34 @@ class BaseExchange(ABC):
         Args:
             id: Order ID
             symbol: Trading pair symbol (required by some exchanges)
+            send: Whether to send the cancellation immediately
             params: Additional exchange-specific parameters
         """
         pass
 
     @abstractmethod
-    def fetch_order(
+    def fetch_open_order(
         self,
         id: str,
-        symbol: Optional[str] = None,
-        params: Optional[Dict[str, Any]] = None,
+        params: Dict[str, Any] = {},
     ) -> Order:
         """
         Fetch order details
 
         Args:
             id: Order ID
-            symbol: Trading pair symbol (required by some exchanges)
             params: Additional exchange-specific parameters
         """
         pass
 
     @abstractmethod
-    def fetch_position(self, symbol: str) -> Position:
+    def fetch_position(self, symbol: str, params: Dict[str, Any] = {}) -> Position:
         """
         Fetch position for the account
 
         Args:
             symbol: Market symbol to fetch positions for a specific market
+            params: Additional parameters for the request
 
         Returns:
             Position object containing position details

@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Dict, Optional, Any, Union, Tuple, List
+from typing import Dict, Optional, Any, Union, List
 import logging
 from web3 import Web3
 from web3.contract import Contract
@@ -228,7 +228,7 @@ class ChainClient:
         signed_tx = self.account.sign_transaction(tx)
         return signed_tx.raw_transaction
 
-    def send_transaction(self, tx: TxParams) -> HexBytes:
+    def send_transaction(self, tx: TxParams, build: bool = True) -> HexBytes:
         """
         Sign and send a transaction.
 
@@ -238,6 +238,8 @@ class ChainClient:
         Returns:
             Transaction hash
         """
+        if build:
+            tx = self.build_transaction(tx)
         raw_tx = self.sign_transaction(tx)
         tx_hash = self.provider.eth.send_raw_transaction(raw_tx)
         return tx_hash
@@ -381,15 +383,18 @@ class ChainClient:
                 else:
                     try:
                         # try to get the suggested priority fee from the node
-                        result_tx["maxPriorityFeePerGas"] = (
-                            min(self.provider.eth.max_priority_fee, result_tx["maxFeePerGas"])
+                        result_tx["maxPriorityFeePerGas"] = min(
+                            self.provider.eth.max_priority_fee,
+                            result_tx["maxFeePerGas"],
                         )
                     except Exception:
                         # fallback to a reasonable priority fee (0.1 gwei)
                         self.logger.debug(
                             "could not get max priority fee, using fallback"
                         )
-                        result_tx["maxPriorityFeePerGas"] = min(Wei(100000000), result_tx["maxFeePerGas"])
+                        result_tx["maxPriorityFeePerGas"] = min(
+                            Wei(100000000), result_tx["maxFeePerGas"]
+                        )
 
             except Exception as e:
                 # if we can't get the base fee, fall back to legacy gas pricing
@@ -491,7 +496,6 @@ class ChainClient:
 
         # add gas limit
         result_tx = self.update_gas_limit(result_tx, gas)
-
         return result_tx
 
     # Common blockchain operations
@@ -552,7 +556,8 @@ class ChainClient:
         token_address: str,
         spender_address: str,
         amount: int = 2**256 - 1,
-    ) -> Tuple[HexBytes, Dict]:
+        send: bool = False,
+    ) -> Union[HexBytes, TxParams]:
         """
         Approve a spender to use tokens.
 
@@ -560,9 +565,10 @@ class ChainClient:
             token_address: Address of the ERC20 token contract
             spender_address: Address of the spender
             amount: Amount to approve
+            send: Whether to send the transaction immediately
 
         Returns:
-            Tuple of (transaction hash, transaction receipt)
+            Transaction hash or transaction parameters
         """
         if not self.address:
             raise ValueError("Cannot approve tokens: no account set up")
@@ -570,18 +576,15 @@ class ChainClient:
         # build the transaction
         token = self.get_contract("ERC20", token_address)
         tx_params = self.get_tx(to=token.address)
+        tx_params["data"] = token.encode_abi("approve", [spender_address, amount])
 
-        # Build the transaction
-        tx_params['data'] = token.encode_abi('approve', [spender_address, amount])
+        # early return if not sending the transaction
+        if not send:
+            return tx_params
 
         # Send the transaction
-        tx_params = self.build_transaction(tx_params)
         tx_hash = self.send_transaction(tx_params)
-
-        # Wait for receipt
-        receipt = self.wait_for_transaction_receipt(tx_hash)
-
-        return tx_hash, receipt
+        return tx_hash
 
     def get_chain_info(self) -> Dict[str, Any]:
         """

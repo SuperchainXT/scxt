@@ -3,6 +3,7 @@ from datetime import datetime, UTC
 from typing import Dict, Optional, Any
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator
+from web3.types import TxParams
 
 
 # Common base models
@@ -145,7 +146,14 @@ class Order(BaseModel):
     Order information.
     """
 
-    id: str = Field(..., description="Order ID")
+    model_config = {
+        "arbitrary_types_allowed": True,
+    }
+
+    tx_hash: Optional[str] = Field(..., description="Transaction hash")
+    tx_params: Optional[TxParams] = Field(
+        default_factory=TxParams, description="Transaction parameters"
+    )
     market: str = Field(..., description="Market symbol")
     order_type: OrderType = Field(..., description="Order type")
     side: OrderSide = Field(..., description="Order side")

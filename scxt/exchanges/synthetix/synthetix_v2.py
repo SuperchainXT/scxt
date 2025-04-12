@@ -1,6 +1,6 @@
 from decimal import Decimal
-from typing import Dict, List, Optional, Any
-from web3.types import HexBytes
+from typing import Dict, List, Optional, Any, Union
+from web3.types import HexBytes, TxParams
 from scxt.models import (
     Market,
     Currency,
@@ -194,41 +194,40 @@ class SynthetixV2(BaseExchange):
         return AccountBalance(balances=balances)
 
     def deposit(
-        self, amount: float, currency: str, market: str, approve: bool = False
-    ) -> HexBytes:
+        self,
+        amount: float,
+        currency: str,
+        send: bool = False,
+        params: Dict[str, Any] = {},
+    ) -> Union[HexBytes, TxParams]:
         """Deposit a specific amount of currency into the exchange account for a specific market.
 
         Args:
             amount (float): The amount of currency to deposit.
             currency (str): The currency code to deposit (only 'sUSD' is supported).
-            market (str): The market symbol to deposit into.
+            send (bool): Whether to send the transaction immediately or return the transaction parameters.
+            params: Additional parameters for the deposit.
 
         Returns:
-            HexBytes: The transaction hash of the deposit transaction.
+            HexBytes or TxParams: The transaction hash of the deposit transaction or the transaction parameters.
 
         Raises:
             ValueError: If a currency other than 'sUSD' is specified.
+            ValueError: If the deposit amount is less than or equal to 0.
+            ValueError: If the market is not specified.
         """
         if currency != "sUSD":
             raise ValueError("Only sUSD deposits are supported.")
         if amount <= 0:
             raise ValueError("Deposit amount must be greater than 0")
 
+        market = params.get("market", None)
+        if not market:
+            raise ValueError("Market must be specified for deposit")
+
         # Get the relevant contracts
         market = self.market(market)
         market_contract = self._get_market_contract(market)
-        susd_contract = self.chain.get_contract(
-            name="ERC20", address=self.contracts["sUSD"]
-        )
-
-        # Approve the transfer of sUSD to the market contract
-        if approve:
-            approve_tx, approve_receipt = self.chain.approve_token(
-                token_address=susd_contract.address,
-                spender_address=market_contract.address,
-                amount=self.chain.provider.to_wei(amount, "ether"),
-            )
-            self.logger.info(f"Approval transaction sent: 0x{approve_tx.hex()}")
 
         # Build the deposit transaction
         deposit_tx = self.chain.get_tx(to=market_contract.address)
@@ -239,21 +238,29 @@ class SynthetixV2(BaseExchange):
             ],
         )
 
-        deposit_tx = self.chain.build_transaction(deposit_tx)
-        tx_hash = self.chain.send_transaction(deposit_tx)
-        self.logger.info(f"Deposit transaction sent: 0x{tx_hash.hex()}")
-        return tx_hash
+        if send:
+            tx_hash = self.chain.send_transaction(deposit_tx)
+            self.logger.info(f"Deposit transaction sent: 0x{tx_hash.hex()}")
+            return tx_hash
+        else:
+            return deposit_tx
 
-    def withdraw(self, amount: float, currency: str, market: str) -> HexBytes:
+    def withdraw(
+        self,
+        amount: float,
+        currency: str,
+        send: bool = False,
+        params: Dict[str, Any] = {},
+    ) -> Union[HexBytes, TxParams]:
         """Withdraw a specific amount of currency from the exchange account for a specific market.
 
         Args:
             amount (float): The amount of currency to withdraw.
             currency (str): The currency code to withdraw (only 'sUSD' is supported).
-            market (str): The market symbol to withdraw from.
+            params (Dict[str, Any]): Additional parameters for the withdrawal.
 
         Returns:
-            HexBytes: The transaction hash of the withdrawal transaction.
+            Union[HexBytes, TxParams]: The transaction hash of the withdrawal transaction or the transaction parameters.
 
         Raises:
             ValueError: If a currency other than 'sUSD' is specified.
@@ -262,6 +269,9 @@ class SynthetixV2(BaseExchange):
             raise ValueError("Only sUSD withdrawals are supported.")
         if amount <= 0:
             raise ValueError("Withdrawal amount must be greater than 0")
+        market = params.get("market", None)
+        if not market:
+            raise ValueError("Market must be specified for withdrawal")
 
         # Get the relevant contracts
         market = self.market(market)
@@ -276,10 +286,13 @@ class SynthetixV2(BaseExchange):
             ],
         )
 
-        withdraw_tx = self.chain.build_transaction(withdraw_tx)
-        tx_hash = self.chain.send_transaction(withdraw_tx)
-        self.logger.info(f"Withdraw transaction sent: 0x{tx_hash.hex()}")
-        return tx_hash
+        if send:
+            # Send the transaction
+            tx_hash = self.chain.send_transaction(withdraw_tx)
+            self.logger.info(f"Withdraw transaction sent: 0x{tx_hash.hex()}")
+            return tx_hash
+        else:
+            return withdraw_tx
 
     def create_order(
         self,
@@ -288,7 +301,8 @@ class SynthetixV2(BaseExchange):
         side: str,
         amount: float,
         price: Optional[float] = None,
-        params: Optional[Dict[str, Any]] = None,
+        send: bool = False,
+        params: Dict[str, Any] = {},
     ) -> Order:
         """
         Create a new order
@@ -299,6 +313,7 @@ class SynthetixV2(BaseExchange):
             side: Order side ('buy' or 'sell')
             amount: Order amount in base currency
             price: Order price (required for limit orders)
+            send: Whether to send the transaction immediately
             params: Additional exchange-specific parameters
 
         Returns:
@@ -344,15 +359,17 @@ class SynthetixV2(BaseExchange):
             [size_delta, price, params["tracking_code"]],
         )
 
-        # Build and send transaction
-        tx = self.chain.build_transaction(tx)
-        tx_hash = self.chain.send_transaction(tx)
-
-        self.logger.info(f"Order {order_type} transaction sent: 0x{tx_hash.hex()}")
+        if send:
+            # Build and send transaction
+            tx_hash = self.chain.send_transaction(tx)
+            self.logger.info(f"Order {order_type} transaction sent: 0x{tx_hash.hex()}")
+        else:
+            tx_hash = None
 
         # Create order object
         order = Order(
-            id=tx_hash.hex(),
+            tx_hash=tx_hash.hex() if tx_hash else None,
+            tx_params=tx,
             market=market.symbol,
             order_type=order_type,
             side=side,
@@ -369,6 +386,8 @@ class SynthetixV2(BaseExchange):
     def cancel_order(
         self,
         symbol: str,
+        send: bool = False,
+        params: Dict[str, Any] = {},
     ) -> HexBytes:
         """
         Cancel an existing order
@@ -391,22 +410,24 @@ class SynthetixV2(BaseExchange):
         )
 
         # Build and send transaction
-        cancel_tx = self.chain.build_transaction(cancel_tx)
-        tx_hash = self.chain.send_transaction(cancel_tx)
-        self.logger.info(f"Cancel order transaction sent: 0x{tx_hash.hex()}")
-        return tx_hash
+        if send:
+            tx_hash = self.chain.send_transaction(cancel_tx)
+            self.logger.info(f"Cancel order transaction sent: 0x{tx_hash.hex()}")
+            return tx_hash
+        else:
+            return cancel_tx
 
-    def fetch_order(self, symbol: str) -> Order:
+    def fetch_open_order(self, id: str) -> Order:
         """
         Fetch an order for the account
 
         Args:
-            symbol: Market symbol to fetch orders for a specific market
+            id: Market symbol to fetch orders for a specific market
 
         Returns:
             An order object containing order details
         """
-        market = self.market(symbol)
+        market = self.market(id)
         market_contract = self._get_market_contract(market)
 
         # Get order data from the contract
@@ -414,7 +435,8 @@ class SynthetixV2(BaseExchange):
 
         # Create Order object
         order = Order(
-            id=f"{market.symbol}",
+            tx_hash=None,
+            tx_params=None,
             market=market.symbol,
             order_type="market",
             side="buy" if order_data.sizeDelta > 0 else "sell",
@@ -483,5 +505,34 @@ class SynthetixV2(BaseExchange):
                 },
             )
         return position
+
+    # Exchange-specific functions
+    def approve_market(
+        self, symbol: str, amount: int = 2**256 - 1, send: bool = False
+    ) -> Union[HexBytes, TxParams]:
+        """
+        Approve the market contract to spend a specific amount of sUSD.
+
+        Args:
+            symbol (str): The market symbol (e.g., 'BTC-PERP').
+            amount (int): The amount of sUSD to approve (default is max uint256).
+            send (bool): Whether to send the transaction immediately (default is False).
+
+        Returns:
+            HexBytes: The transaction hash of the approval transaction.
+        """
+        market = self.market(symbol)
+        market_contract = self._get_market_contract(market)
+        susd_contract = self.chain.get_contract(
+            name="ERC20", address=self.contracts["sUSD"]
+        )
+
+        approve_return = self.chain.approve_token(
+            token_address=susd_contract.address,
+            spender_address=market_contract.address,
+            amount=self.chain.provider.to_wei(amount, "ether"),
+            send=send,
+        )
+        return approve_return
 
     # TODO: Add execute order function
