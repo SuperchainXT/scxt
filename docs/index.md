@@ -26,7 +26,7 @@ This library draws inspiration from the popular [`ccxt`](https://github.com/ccxt
 
 ## Explore the Docs
 
-- **[Quickstart Guide](quickstart.md):** Get started with installation and basic usage.
+- **[Quickstart Guide](guides/quickstart.md):** Get started with installation and basic usage.
 - **[Best Practices](guides/best_practices.md):** Tips for using `scxt` effectively and safely.
 
 **Exchange Guides:**

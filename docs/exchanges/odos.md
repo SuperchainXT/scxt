@@ -33,7 +33,7 @@ load_dotenv()
 chain_config = {
     "chain_id": 10,  # Optimism (default)
     "private_key": os.getenv("PRIVATE_KEY"),
-    "rpc_url": os.getenv("OPTIMISM_RPC_URL"),
+    "rpc_url": os.getenv("CHAIN_10_RPC"), # Replace with your RPC URL
 }
 
 # Create chain client

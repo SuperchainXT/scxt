@@ -51,7 +51,7 @@ class ChainManager:
         Get a client for the specified chain.
 
         Args:
-            chain_id_or_name: Chain ID or name
+            chain_id: Chain ID
 
         Returns:
             ChainClient instance
@@ -66,7 +66,7 @@ class ChainManager:
         Remove a chain connection.
 
         Args:
-            chain_id_or_name: Chain ID or name
+            chain_id: Chain ID
         """
         client = self.get_client(chain_id)
         del self.clients[client.chain_id]

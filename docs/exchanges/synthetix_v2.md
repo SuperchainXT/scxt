@@ -23,8 +23,8 @@ load_dotenv()
 
 config = {
     "chain_id": 10,  # Or your target chain ID (e.g., 8453 for Base)
-    "private_key": os.getenv("YOUR_PRIVATE_KEY"),
-    "rpc_url": os.getenv("OPTIMISM_RPC_URL") # Or your target chain RPC
+    "private_key": os.getenv("PRIVATE_KEY"),
+    "rpc_url": os.getenv("CHAIN_10_RPC") # Or your target chain RPC
 }
 
 try:

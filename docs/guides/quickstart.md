@@ -29,7 +29,7 @@ load_dotenv()
 # Configuration for Synthetix V2
 config = {
     "chain_id": 10,  # Optimism Mainnet
-    "private_key": os.getenv("YOUR_PRIVATE_KEY"), # Your wallet's private key
+    "private_key": os.getenv("PRIVATE_KEY"), # Your wallet's private key
     "rpc_url": os.getenv("CHAIN_10_RPC") # An Optimism RPC endpoint
 }
 
@@ -56,5 +56,6 @@ for market in markets[:5]:
 
 Now that you have the basics, check out the specific guides for more advanced actions:
 
-- **[Best Practices](guides/best_practices.md):** Understand important considerations for building reliable applications.
-- **[Synthetix V2 Guide](exchanges/synthetix_v2.md):** Learn how to place orders, check balances, and manage positions on Synthetix V2.
+- **[Best Practices](./best_practices.md):** Understand important considerations for building reliable applications.
+- **[Synthetix V2 Guide](../exchanges/synthetix_v2.md):** Learn how to place orders, check balances, and manage positions on Synthetix V2.
+- **[Odos Guide](../exchanges/odos.md):** Learn how to use Odos for token swaps.
