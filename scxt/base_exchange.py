@@ -86,7 +86,12 @@ class BaseExchange(ABC):
         elif self.config.chain_id:
             # if a chain ID is provided, create a new client
             self.chain_manager = self.config.chain_manager or ChainManager()
-            self.chain_manager.add_chain(self.config.chain_id)
+            self.chain_manager.add_chain(
+                self.config.chain_id,
+                {
+                    "private_key": self.config.private_key,
+                },
+            )
             return self.chain_manager.get_client(self.config.chain_id)
         else:
             # no chain provided

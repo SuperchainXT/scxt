@@ -6,43 +6,31 @@ SCXT is a Python library providing a unified interface for interacting with exch
 
 SCXT abstracts away the complexities of interacting with protocols by providing a consistent API across all supported exchanges. This makes it easier for developers to build trading tools, bots, and analytics platforms that work across multiple protocols and chains.
 
-## Installation
+## Quickstart
 
-```bash
-# uv
-uv add scxt
-
-# pip
-pip install scxt
-```
-
-## Quick Start
+The core idea is to create an instance of the exchange you want to use. Let's use Synthetix V2 on the Optimism network (chain ID 10) as an example.
 
 ```python
-import scxt
+import os
+from scxt.exchanges import SynthetixV2
+from dotenv import load_dotenv
 
-# Initialize the exchange
-exchange = scxt.exchange({
-    'rpc_url': 'https://mainnet.optimism.io',
-    'private_key': 'your_private_key',  # Optional, for trading
-})
+# Load environment variables (optional, for API keys etc.)
+load_dotenv()
 
-# Fetch available markets
+# Configuration for Synthetix V2
+config = {
+    "chain_id": 10,  # Optimism Mainnet
+    "private_key": os.getenv("PRIVATE_KEY"), # Your wallet's private key
+    "rpc_url": os.getenv("CHAIN_10_RPC") # An Optimism RPC endpoint
+}
+
+# Create the exchange instance
+exchange = SynthetixV2(config)
+
+# Fetch markets
 markets = exchange.fetch_markets()
-print(markets)
-
-# Fetch account balances (requires private key)
-balances = exchange.fetch_balance()
-print(balances)
-
-# Create a market order (requires private key)
-order = exchange.create_order(
-    symbol='ETH',
-    type='market',
-    side='buy',
-    amount=0.1,
-)
-print(order)
+print("Markets:", markets)
 ```
 
 ## Features
@@ -54,7 +42,8 @@ print(order)
 
 ## Supported Exchanges
 
-(coming soon)
+- Synthetix V2
+- Odos
 
 ## Documentation
 
