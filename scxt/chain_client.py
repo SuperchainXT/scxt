@@ -65,8 +65,7 @@ class ChainClient:
         # Set up account
         self.account = None
         self.address = None
-        if self.config.private_key:
-            self._setup_account()
+        self._setup_account()
 
         # load common ABIs
         self.abis = {}
