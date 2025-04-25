@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Any, Union, Tuple
+from pydantic import AnyHttpUrl
 
 import requests
 from web3.types import TxParams, Wei, HexBytes
@@ -16,6 +17,7 @@ from scxt.models import (
 )
 from scxt.base_exchange import BaseExchange, ExchangeConfig
 from scxt.http_client import HTTPClient, HTTPConfig
+from scxt.chain_client import ChainClient
 
 # Define the Odos API Base URL
 ODOS_BASE_URL = "https://api.odos.xyz/"
@@ -26,6 +28,8 @@ class Odos(BaseExchange):
     """
     Odos exchange implementation for interacting with the DEX aggregator.
     """
+
+    chain: ChainClient
 
     def __init__(self, config: Union[Dict[str, Any], ExchangeConfig] = {}):
         self.name = "Odos"
@@ -48,7 +52,7 @@ class Odos(BaseExchange):
         # Initialize HTTP client directly
         try:
             base_url = ODOS_BASE_URL
-            http_config = HTTPConfig(base_url=base_url)
+            http_config = HTTPConfig(base_url=AnyHttpUrl(base_url))
             self.client = HTTPClient(http_config)
             self.client.logger = self.logger
         except Exception as e:
@@ -102,8 +106,6 @@ class Odos(BaseExchange):
         """Fetch supported currencies from the Odos API for the configured chain."""
         if self.currencies and not reload:
             return self.currencies
-        if not self.chain:
-            raise RuntimeError("ChainClient not configured. Cannot fetch currencies.")
 
         endpoint = f"/info/tokens/{self.chain.chain_id}"
         try:
@@ -329,7 +331,7 @@ class Odos(BaseExchange):
 
         # Create the order object
         order = Order(
-            tx_hash=tx_hash,
+            tx_hash=str(tx_hash),
             tx_params=tx_params,
             market=symbol,
             order_type=OrderType.MARKET,

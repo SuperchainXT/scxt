@@ -68,7 +68,7 @@ class ChainClient:
         self._setup_account()
 
         # load common ABIs
-        self.abis = {}
+        self.abis: Dict[str, Any] = {}
 
     def _get_default_rpc_url(self, chain_id: int) -> str:
         """
@@ -377,15 +377,15 @@ class ChainClient:
                 # set max priority fee
                 if max_priority_fee_per_gas is not None:
                     result_tx["maxPriorityFeePerGas"] = Wei(
-                        min(int(max_priority_fee_per_gas), result_tx["maxFeePerGas"])
+                        min(int(max_priority_fee_per_gas), int(result_tx["maxFeePerGas"]))
                     )
                 else:
                     try:
                         # try to get the suggested priority fee from the node
-                        result_tx["maxPriorityFeePerGas"] = min(
+                        result_tx["maxPriorityFeePerGas"] = Wei(min(
                             self.provider.eth.max_priority_fee,
-                            result_tx["maxFeePerGas"],
-                        )
+                            int(result_tx["maxFeePerGas"]),
+                        ))
                     except Exception:
                         # fallback to a reasonable priority fee (0.1 gwei)
                         self.logger.debug(

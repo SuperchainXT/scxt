@@ -101,9 +101,9 @@ class HTTPClient:
         Returns:
             Dict[str, Any]: The response data, validated against the response_model.
         """
-        validated_params = request_model.model_validate(kwargs, by_name=True)
+        validated_params = request_model.model_validate(kwargs)
         params = validated_params.model_dump(
-            mode="json", exclude_none=True, by_alias=True
+            mode="json", exclude_none=True
         )
 
         response_data = self.prepare_and_send_request(
