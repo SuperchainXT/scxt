@@ -58,6 +58,7 @@ nav:
       - Exchanges: guides/exchanges.md
       - Transactions: guides/transactions.md
       - Best Practices: guides/best_practices.md
+      - Testing: guides/testing.md
   - Exchanges:
       - SynthetixV2: exchanges/synthetix_v2.md
       - Odos: exchanges/odos.md
