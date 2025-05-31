@@ -271,8 +271,10 @@ class Odos(BaseExchange):
             "slippageLimitPercent": params["slippage_tolerance"] * 100,
             "disableRFQs": params.get("disable_rfqs", True),
             "compact": params.get("compact", True),
+            "simple": params.get("simple", False),
             "sourceBlacklist": params.get("source_blacklist", []),
             "sourceWhitelist": params.get("source_whitelist", []),
+            "pathVizImage": params.get("path_viz_image", False),
         }
 
         self.logger.debug(f"Odos Quote Request Body: {quote_request_body}")
