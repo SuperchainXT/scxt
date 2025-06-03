@@ -31,3 +31,20 @@ def odos_op(account):
     exchange = Odos(config)
     exchange.fetch_currencies()
     return exchange
+
+
+@pytest.fixture
+def odos_base(account):
+    """Get a test Odos exchange on Base mainnet with a funded account"""
+    chain_config = {
+        "chain_id": 8453,
+        "private_key": f"0x{account.key.hex()}",
+    }
+    chain = ChainClient(chain_config)
+
+    config = {
+        "chain": chain,
+    }
+    exchange = Odos(config)
+    exchange.fetch_currencies()
+    return exchange

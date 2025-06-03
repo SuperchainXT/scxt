@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, Optional, Union, Type
 from pydantic import BaseModel, Field, AnyHttpUrl
 
@@ -27,6 +28,7 @@ class HTTPClient:
         self.base_url = self.config.base_url
         self.timeout = self.config.timeout
         self.session = self._setup_session()
+        self.logger = logging.getLogger(__name__)
 
     def _setup_session(self):
         """Sets up an HTTP session.
@@ -102,9 +104,7 @@ class HTTPClient:
             Dict[str, Any]: The response data, validated against the response_model.
         """
         validated_params = request_model.model_validate(kwargs)
-        params = validated_params.model_dump(
-            mode="json", exclude_none=True
-        )
+        params = validated_params.model_dump(mode="json", exclude_none=True)
 
         response_data = self.prepare_and_send_request(
             "GET", url_path, params, data=None
